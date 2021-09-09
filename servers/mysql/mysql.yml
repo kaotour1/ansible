@@ -1,0 +1,61 @@
+---
+- name: manage my sql database
+  hosts: SERV1
+  remote_user: root
+
+  tasks:
+    - name: Install Mysql
+      apt:
+        pkg:
+          - mysql-server
+          - python-mysqldb
+        state: latest
+
+    - name: Start Mysql service
+      service: name=mysql.service state=started enabled=yes
+
+    - name: Create Application Database
+      mysql_db:
+        name: ansible_db
+        state: present
+
+    - name: create Database user
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        priv: '*.*:ALL'
+        state: present
+
+    - name: add a table to database
+      copy:
+        src: /etc/ansible/servers/mysql/client.sql
+        dest: /tmp/client.sql
+
+    - name: insert table into database
+      mysql_db:
+        name: ansible_db
+        state: import
+        target: /tmp/client.sql
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+
+    - name: Run several insert queries against db test_db in single transaction
+      community.mysql.mysql_query:
+        login_db: ansible_db
+        query:
+          - INSERT INTO client (id, name, email, phone) VALUES (id, 'kaoutar', 'kaoutar.tourham@gmail.com', '087658996')
+          - INSERT INTO client (id, name, email, phone) VALUES (id, 'pascal', 'pascal.hubert@outlook.com', '085479854')
+          - INSERT INTO client (id, name, email, phone) VALUES (id, 'karima', 'ka30rima@gmail.com', '0854628825')
+        single_transaction: yes
+
+    - name:  select query to ansible db
+      community.mysql.mysql_query:
+        login_db: ansible_db
+        query: SELECT * FROM client
+        login_user: "{{ db_user }}"
+        login_password: "{{ db_password }}"
+      register: select_query
+
+    - name: select query result
+      debug: var=select_query.stdout_lines
+

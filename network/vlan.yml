@@ -1,0 +1,56 @@
+---
+- name: create vlan
+  hosts: gns3_core
+  gather_facts: false
+  connection: local
+  vars:
+    vlans:
+      10: "vlan10"
+      20: "vlan20"
+      30: "vlan30"
+
+  tasks:
+  - name: create VLANs
+    ios_config:
+      provider:
+        authorize: yes
+        auth_pass: kao123
+        timeout: 60
+      lines:
+        - name {{item.value}}
+      parents:
+        - vlan {{item.key}}
+    with_dict: "{{vlans}}"
+
+  - name: verify vlan and vtp
+    ios_command:
+      commands:
+        - show vlan brief
+
+- name: configure vtp
+  hosts: gns3_access,gns3_core
+  gather_facts: false
+  connection: local
+
+  tasks:
+  - name: configre VTP transparent
+    ios_config:
+      provider:
+        authorize: yes
+        auth_pass: kao123
+        timeout: 60
+      lines:
+        - vtp mode transparent
+        - vtp domain kao.ma
+        - vtp version 3
+        - do wr
+
+  - name: verify vlan and vtp
+    ios_command:
+      commands:
+        - show vlan brief
+    register: vlan_vtp_config
+
+  - name: show vlan config
+    debug:
+      var=vlan_vtp_config.stdout_lines

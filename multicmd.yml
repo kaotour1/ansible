@@ -1,0 +1,20 @@
+---
+- name: run command and redirect output to a file
+  hosts: gns3_core, gns3_access
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: run multiple commands on all switches
+      ios_command:
+        commands:
+          - show version
+          - show cdp
+          - show cdp nei
+
+      register: result
+
+    -  debug: var=result.stdout_lines
+
+    - name: save output to a file
+      copy: content="{{ result.stdout[0] }}" dest="./output/{{ inventory_hostname }}.txt"

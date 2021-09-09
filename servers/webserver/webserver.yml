@@ -1,0 +1,55 @@
+---
+- name: installation web server
+  hosts: servers
+  remote_user: root
+
+
+  tasks:
+    - name: install apache et php
+      apt:
+        pkg:
+          - apache2
+          - php
+
+    - name:  add user
+      user:
+        name: "{{ user }}"
+        password: !
+        shell: /bin/false
+
+    - name: create user file
+      file:
+        path: /var/www/{{ domain }}
+        state:  directory
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: 0755
+
+    - name: phpinfo
+      copy:
+        src: files/index.php
+        dest: /var/www/{{ domain }}
+        owner: "{{ user }}"
+        group: "{{ user }}"
+        mode: 0644
+
+    - name: copy virtualhost
+      template:
+        src: templates/virtualhost.conf
+        dest: /etc/apache2/sites-available/virtualhost.conf
+
+    - name: remove default virtualhost
+      command: a2dissite 000-default.conf
+      args:
+        removes: /etc/apche2/sites-enabled/000-default.conf
+      notify: relancer Apache
+
+    - name: add virtualhost.conf
+      command: a2ensite virtualhost.conf
+      args:
+        creates: /etc/apache2/sites-enabled/virtualhost.conf
+
+    - name: allow apache2
+      community.general.ufw:
+        rule: allow
+        name: apache

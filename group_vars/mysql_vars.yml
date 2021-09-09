@@ -1,0 +1,12 @@
+servers:
+  hosts:
+    192.168.122.10:
+      user: kao
+      domain: kao.ma
+
+    192.168.122.20:
+      user: kao1
+      domain: kao1.ma
+      db_user: dbkao
+      db_password: kao123
+

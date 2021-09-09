@@ -1,0 +1,21 @@
+---
+- name: configure etherchannel
+  hosts: gns3_core
+  gather_facts: no
+  connection: local
+
+  tasks:
+  - name: set link aggregation group to members
+    ios_linkagg:
+      provider:
+        authorize: yes
+        auth_pass: kao123
+        timeout: 60
+      group: 10
+      mode: active
+      members:
+      - GigabitEthernet3/0
+      - GigabitEthernet3/1
+      - GigabitEthernet3/2
+      - GigabitEthernet3/3
+      state: present

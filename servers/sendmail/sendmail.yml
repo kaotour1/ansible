@@ -1,0 +1,22 @@
+---
+- name: send an email
+  hosts: SERV1
+  remote_user: root
+  vars_files:
+    - "/etc/ansible/group_vars/gmail_password.txt"
+
+  tasks:
+  - name: Send e-mail to a bunch of users, attaching files
+    community.general.mail:
+      host: smtp.gmail.com
+      secure: starttls
+      port: 587
+      subject: Ansible mail
+      body: Hello, this is an e-mail from my ansible machine. I hope you like it ;-)
+      from: kaoutar.tourham@gmail.com
+      username: kaoutar.tourham@gmail.com
+      password: "{{ gmail_password }}"
+      to: pascal.hubert@outlook.com
+      cc: ka30rima@gmail.com
+      attach: /etc/ansible/hosts
+    delegate_to: localhost

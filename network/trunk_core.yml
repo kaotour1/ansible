@@ -1,0 +1,84 @@
+---
+- name: configure trunk on core layer
+  hosts: gns3_core
+  connection: netwotk_cli
+  gather_facts: false
+  vars_files:
+    - /etc/ansible/group_vars/ios.yml
+
+  tasks:
+  - name: define trunk on core layer
+    ios_l2_interfaces:
+      config:
+      - name: GigabitEthernet0/0
+        trunk:
+          encapsulation: dot1q
+          allowed_vlans: 1,10,20,30
+          native_vlan: 1
+
+      - name: GigabitEthernet0/1
+        trunk:
+          encapsulation: dot1q
+          allowed_vlans: 1,10,20,30
+          native_vlan: 1
+
+      - name: GigabitEthernet0/2
+        trunk:
+          encapsulation: dot1q
+          allowed_vlans: 1,10,20,30
+          native_vlan: 1
+
+      - name: GigabitEthernet0/3
+        trunk:
+          encapsulation: dot1q
+          allowed_vlans: 1,10,20,30
+          native_vlan: 1
+      state: merged
+
+  - name: show the trunk interfaces
+    ios_command:
+      commands:
+        - show int trunk
+    register: result
+  - debug: var=result.stdout_lines
+
+
+- name: configure trunk and access mode on access layer
+  hosts: gns3_access
+  connection: netwotk_cli
+  gather_facts: false
+  vars_files:
+    - /etc/ansible/group_vars/ios.yml
+
+  tasks:
+  - name: define trunk interfaces
+    ios_l2_interfaces:
+      config:
+      - name: GigabitEthernet0/0
+        trunk:
+          encapsulation: dot1q
+          allowed_vlans: 1,10,20,30
+          native_vlan: 1
+
+      - name: GigabitEthernet0/1
+        trunk:
+          encapsulation: dot1q
+          allowed_vlans: 1,10,20,30
+          native_vlan: 1
+      state: merged
+
+  - name: define access mode 
+    ios_l2_interfaces:
+      config:
+      - name: GigabitEthernet1/0
+        access:
+          vlan: 10
+
+      - name: GigabitEthernet2/0
+        access:
+          vlan: 20
+
+      - name: GigabitEthernet3/0
+        access:
+          vlan: 30
+      state: merged
